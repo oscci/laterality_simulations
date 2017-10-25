@@ -17,8 +17,11 @@ ncombo<-ncol(allcombo)
 
 myN<-30 #specify N subjects for each sample
 bigN<-10000 #specify size of population to sample from
-partialtest<-0 #each person does one of the combinations above
+partialtest<-1 #each person does one of the combinations above
 #(set to zero if each person does all tests)
+myfactor<-2  #set to 2 for frontal/post independent
+
+
 
 ##########################################################################
 #Generate bigN random normal deviates :these simulate frontal and for posterior bias
@@ -47,10 +50,18 @@ colnames(alltask)<-mylabel
 
 #mywts has one col per task; row 1 is front wt, row 2 is post wt, row 3 is error
 #these are set to sum to one.
+#default is 2 factors; 2 pure measures for each, two hybrid
+myerr<-.35 #2 measures frontal only, 2 measures 50/50, 2 measures post only
+mywts<-matrix(c(1-myerr,1-myerr,(1-myerr)/2,(1-myerr)/2,0,0,
+                0,0,(1-myerr)/2,(1-myerr)/2,1-myerr,1-myerr,
+                myerr,myerr,myerr,myerr,myerr,myerr),byrow=TRUE,nrow=3)
 
-mywts<-matrix(c(.7,.7,.35,.35,0,0,
-                0,.0,.35,.35,.7,.7,
-                .3,.3,.3,.3,.3,.3),byrow=TRUE,nrow=3)
+
+#Statement to include to revert to model with just one factor
+if (myfactor==1){
+mywts[,2:6]<-mywts[,1]
+}
+
 
 #We now use these weights to simulate data for 2 runs with each task
 thiscol<-0 #zero the counter for columns
@@ -135,5 +146,5 @@ for (i in 1:66){
 }
 
 #write the summary data to file with filename
-filename<-'N30_tested_on_4.csv'
+filename<-paste0('N',myN,'_tested_on_',m,'_err',mywts[3,1],'_',myfactor,'factor.csv')
 write.csv(rsummary, filename)

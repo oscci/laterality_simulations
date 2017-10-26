@@ -8,9 +8,8 @@ library(Hmisc) #for correlations
 
 ##########################################################################
 #check how many combinations of possible tasks 
-#(This is separate from rest of script -just to confirm how many possibilities)
 x=1:6  #N tasks
-m=4  #N tasks that each person does
+m=4  #N tasks that each person does - can vary this to check impact
 allcombo<-combn(x, m, FUN = NULL) #To see all combinations
 ncombo<-ncol(allcombo)
 ##########################################################################
@@ -45,8 +44,6 @@ colnames(alltask)<-mylabel
 
 #Next specify the weightings and error for each task - can change these.
 #We will assume we have 2 tasks predominantly frontal, 2 predom posterior and 2 equal
-#For each type of task, one has a bigger error term and one smaller
-#NB all these options can be altered.
 
 #mywts has one col per task; row 1 is front wt, row 2 is post wt, row 3 is error
 #these are set to sum to one.
@@ -55,13 +52,13 @@ myerr<-.35 #2 measures frontal only, 2 measures 50/50, 2 measures post only
 mywts<-matrix(c(1-myerr,1-myerr,(1-myerr)/2,(1-myerr)/2,0,0,
                 0,0,(1-myerr)/2,(1-myerr)/2,1-myerr,1-myerr,
                 myerr,myerr,myerr,myerr,myerr,myerr),byrow=TRUE,nrow=3)
+#Original version of script hand-crafted mywts - can do this if you prefer.
+#This version assumes same error term for all
 
-
-#Statement to include to revert to model with just one factor
+#Statement to include to set mywts same for all tests if myfactor is one
 if (myfactor==1){
 mywts[,2:6]<-mywts[,1]
 }
-
 
 #We now use these weights to simulate data for 2 runs with each task
 thiscol<-0 #zero the counter for columns
@@ -104,7 +101,7 @@ for (j in 1:nrun)
       mycount<-mycount+1
       if(mycount>ncombo){mycount<-1}
       thiscombo<-c(allcombo[,mycount],6+allcombo[,mycount]) #same tests time 1 and 2
-      alltask.N[k,-thiscombo]<-NA
+      alltask.N[k,-thiscombo]<-NA #tests that aren't in thiscombo are assigned to NA
     }
   }
   #Now compute Spearman correlations between tasks within our sample
@@ -113,11 +110,13 @@ for (j in 1:nrun)
   mycorrs<-rcorr(as.matrix(alltask.N), type="spearman") 
   mycorrs<-mycorrs$r #we just want the correlations and not the p-values that rcorr generates
   mycorrs<-data.frame(mycorrs)
+  
+  #Build up pairwise correlations for allr table from upper triangle of full matrix
   allr[j,]<-c(mycorrs[1,2:12],mycorrs[2,3:12],mycorrs[3,4:12],mycorrs[4,5:12],mycorrs[5,6:12],
               mycorrs[6,7:12],mycorrs[7,8:12],mycorrs[8,9:12],mycorrs[9,10:12],mycorrs[10,11:12],mycorrs[11,12])
 }
 
-#just save and plot the last one
+#For illustration of pattern of correlations we save and plot the last one
 mycorrs<-cbind(1:12,mycorrs) #add a serial set of numbers so we can plot easily
 colnames(mycorrs)<-c('X',mylabel)
 par( mfrow = c( 3, 2 ) )
@@ -127,15 +126,15 @@ for (i in 2:13){
   thislabel<-paste0(mylabel,colnames(mycorrs[i]))
   par(las=2)
   plot(mycorrs[,1],mycorrs[,i],main=mytitle,type='p',
-       xlab='Task',ylab='Spearman r',cex=.1,ylim=c(0,1))
+       xlab='Task',ylab='Spearman r',cex=.1,ylim=c(0,1)) #cex: low value makes pts v small
   axis(1, at=1:12, labels=mylabel)
   
-  text(mycorrs[,1],mycorrs[,i],
-       label=mylabel)
+  text(mycorrs[,1],mycorrs[,i], #text to be written at x and y coordinate points
+       label=mylabel) #overwrite the dots depicting correlations with the pairwise test letters
 }
 
 
-#create data frame to hold summary data
+#create data frame to hold summary data for each pairwise correlation, averaged across all runs
 rsummary<-data.frame(matrix(rep(NA,66*4),nrow=66) )
 colnames(rsummary)<-c('Tests','Mean.r','lower95CI','upper95CI')
 rsummary[,1]<-colnames(allr)

@@ -18,7 +18,7 @@ myN<-30 #specify N subjects for each sample
 bigN<-10000 #specify size of population to sample from
 partialtest<-1 #each person does one of the combinations above
 #(set to zero if each person does all tests)
-myfactor<-2  #set to 2 for frontal/post independent
+myfactor<-1  #set to 2 for frontal/post independent
 
 
 
@@ -140,10 +140,14 @@ colnames(rsummary)<-c('Tests','Mean.r','lower95CI','upper95CI')
 rsummary[,1]<-colnames(allr)
 rsummary[,2]<-apply(allr,2,mean)#mean correlation
 for (i in 1:66){
-  rsummary[i,3]<-quantile(allr[,i],.05,na.rm=TRUE)
-  rsummary[i,4]<-quantile(allr[,i],.95,na.rm=TRUE)
+  rsummary[i,3]<-quantile(allr[,i],.025,na.rm=TRUE) #corrected! previously had .05 which -> 90% 2-tailed
+  rsummary[i,4]<-quantile(allr[,i],.925,na.rm=TRUE)
 }
 
 #write the summary data to file with filename
 filename<-paste0('N',myN,'_tested_on_',m,'_err',mywts[3,1],'_',myfactor,'factor.csv')
+write.csv(rsummary, filename)
+
+#also write raw data from the last run
+filename2<-paste0('raw_N',myN,'_tested_on_',m,'_err',mywts[3,1],'_',myfactor,'factor.csv')
 write.csv(rsummary, filename)

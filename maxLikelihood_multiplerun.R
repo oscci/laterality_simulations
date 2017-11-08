@@ -15,13 +15,16 @@ ncombo<-ncol(allcombo)
 ##########################################################################
 myfactor<-2 #change this for 2 factors
 #read in big file of simulated data from 1 or 2 factor case
-myfilename<-paste0('alltask_err0.35_',myfactor,'factor.csv') #10000 rows of simulated data
-#alltask is created with script 'simulating correls for tasks.R'
-alltask<-read.csv(myfilename)
+myrawfile<-paste0('ABCDEFx2_err0.35_',myfactor,'factor_raw.csv') #change 1factor to 2factor for bifactor model data
+#myrawfile is created with script 'simulating correls for tasks.R'
+
+alltask<-read.csv(myrawfile)
+alltask<-alltask[,26:37] #this selects the ranked scores after transformation
 bigN<-nrow(alltask)
-myN<-30 #specify here the sample size to be used
+myN<-24 #specify here the sample size to be used
 nrun<-100 #N runs of simulation
 mylabels<-c('A1','B1','C1','D1','E1','F1','A2','B2','C2','D2','E2','F2')
+colnames(alltask)<-mylabels
 ##########################################################################
 #Set up matrix to hold results of model testing
 myresults<-data.frame(matrix(rep(NA,nrun*14),nrow=nrun) )
@@ -29,6 +32,16 @@ colnames(myresults)<-c('Factors','N','Sat.-2LL','Sat.df','Sat.BIC',
                        'Fac1.-2LL','Fac1.df','Fac1.BIC',
                        'Fac2.-2LL','Fac2.df','Fac2.BIC',
                        'F1-F2.-2LL','F1-F2.df','F1-F2.p')
+#-------------------------------------------------------------------------
+#Set up file to hold results
+
+myfits<-data.frame(matrix(rep(NA,nrun*3),nrow=nrun) )
+colnames(myfits)<-c('rmsea','cfi','tli')
+
+myfits2<-data.frame(matrix(rep(NA,nrun*3),nrow=nrun) )
+colnames(myfits2)<-c('rmsea','cfi','tli')
+
+
 #-------------------------------------------------------------------------
 #Start loop here for repeated sampling and model testing
 
@@ -39,13 +52,13 @@ for (j in 1:nrun)
   
   #Now substitute NA for tasks that were not done
  
-    mycount<-0
-    for (k in 1:myN){
-      mycount<-mycount+1
-      if(mycount>ncombo){mycount<-1}
-      thiscombo<-c(allcombo[,mycount],6+allcombo[,mycount]) #same tests time 1 and 2
-      my_raw[k,-thiscombo]<-NA #tests that aren't in thiscombo are assigned to NA
-    }
+    # mycount<-0
+    # for (k in 1:myN){
+    #   mycount<-mycount+1
+    #   if(mycount>ncombo){mycount<-1}
+    #   thiscombo<-c(allcombo[,mycount],6+allcombo[,mycount]) #same tests time 1 and 2
+    #   my_raw[k,-thiscombo]<-NA #tests that aren't in thiscombo are assigned to NA
+    # }
 
 dataRaw      <- mxData( observed=my_raw, type="raw" )
 
@@ -109,11 +122,11 @@ oneFactorFit<-mxRun(oneFactorModel)
 
 # latent variances and covariance: NB assume totally independent, so covariance fixed at zero
 latVars      <- mxPath( from=c("X1","X2"), arrows=2, connect="unique.pairs",
-                        free=c(TRUE,FALSE,TRUE), values=c(1,0,1), labels=c("varX1","cov","varX2") )
+                        free=c(FALSE,FALSE,FALSE), values=c(1,0,1), labels=c("varX1","cov","varX2") )
 
 # factor loadings for X1
 facLoadsX1     <- mxPath( from="X1", to=mylabels, arrows=1,
-                          free=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE), values=rep(1,12),
+                          free=c(FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE), values=c(0,rep(1,5),0,rep(1,5)),
                           labels =c("l1","l2","l3","l4","l5","l6","l1","l2","l3","l4","l5","l6") )
 # factor loadings for X2 
 facLoadsX2     <- mxPath( from="X2", to=mylabels, arrows=1,
@@ -153,6 +166,15 @@ myresults[j,12]<-M2$Minus2LogLikelihood-M3$Minus2LogLikelihood
 myresults[j,13]<-M2$degreesOfFreedom-M3$degreesOfFreedom
 myresults[j,14]<-1-pchisq(myresults[j,12],myresults[j,13])
 
+factorSat <- mxRefModels(oneFactorFit, run=TRUE)
+factorSatsum<-summary(oneFactorFit, refModels=factorSat)
+myfits[j,]<-c(factorSatsum[[30]],factorSatsum[[28]],factorSatsum[[29]]) 
+
+
+factorSat2 <- mxRefModels(twoFactorFit, run=TRUE)
+factorSatsum2<-summary(twoFactorFit, refModels=factorSat2)
+myfits2[j,]<-c(factorSatsum2[[30]],factorSatsum2[[28]],factorSatsum2[[29]])
+
 }
 #save the summary file
 #also write raw data from the last run
@@ -160,9 +182,15 @@ filename<-paste0('Factor_',myfactor,'N',myN,'_tested_on_',m,'.csv')
 write.csv(myresults, filename)
 
 #Uncomment these lines to draw diagram of the models
-#omxGraphviz(oneFactorFit, dotFilename="oneFactor.dot")
+# omxGraphviz(oneFactorFit, dotFilename="oneFactora")
+# grViz("oneFactora")
+# 
+# omxGraphviz(twoFactorFit, dotFilename="twoFactor.dot")
+# grViz("twoFactor.dot")
 
-#grViz("oneFactor.dot")
-#omxGraphviz(twoFactorFit, dotFilename="twoFactor.dot")
 
-#grViz("twoFactor.dot")
+###new path  diagrams
+
+# library(semPlot)
+# semPaths(twoFactorModel,layout="tree2",bifactor="X1", residuals = FALSE, exoCov = FALSE,intercepts=F)
+# semPaths(oneFactorModel,layout="circle",intercepts=F)

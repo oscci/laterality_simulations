@@ -5,7 +5,7 @@
 
 #Needs OpenMx, which you get with following command (not CRAN)
 #source('http://openmx.psyc.virginia.edu/getOpenMx.R')
-
+#
 require(OpenMx)
 library(DiagrammeR) #for the diagram
 ##########################################################################

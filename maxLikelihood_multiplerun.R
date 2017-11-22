@@ -1,7 +1,8 @@
 #Max likelihood for laterality models
 #by DVM Bishop, 26th October 2017
 #Updated 8th Nov 2017
-#Updated 22nd Nov 2017 to include modeling of means
+#Updated 22nd Nov 2017 to include modeling of means 
+#Saves data to Factor1 or 2 file with ABCDEFx2_err0.35 suffix
 
 #Needs OpenMx, which you get with following command (not CRAN)
 #source('http://openmx.psyc.virginia.edu/getOpenMx.R')

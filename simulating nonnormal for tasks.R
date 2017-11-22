@@ -1,6 +1,7 @@
 #Simulating LI data to check on correlation patterns
 #This version runs the simulation many times to check the confidence interval around correlations
 #Started DVM Bishop, 25th October 2017, updated 8th Nov 2017
+#Updated 22 Nov 2017 to include mean difference: 1 pt subtracted from tests A,B,C (see line 80)
 
 #Outputs written to working directory - for both one factor and bifactor models:
 #Histograms showing original and transformed data for one simulated variable- eg 'simulated_histograms_lat_factor1.pdf'
@@ -22,8 +23,8 @@ ncombo<-ncol(allcombo) #this is only interesting if donetasks < Ntasks!
 partialtest<-0
 if(donetasks<ntasks){partialtest<-1}
 ##########################################################################
-
-myN<-24 #specify N subjects for each sample
+meandiff<-1 #set to zero if no mean difference between LIs for different tasks
+myN<-30 #specify N subjects for each sample
 bigN<-10000 #specify size of population to sample from
 partialtest<-0 #each person does one of the combinations above
 #(set to zero if each person does all tests)
@@ -36,7 +37,7 @@ partialtest<-0 #each person does one of the combinations above
 #This won't affect correlations but may be useful later on if we want to simulate means for different tasks
 #Or if we want to simulate situation with different degrees of bias.
 
-frontL<-rnorm(bigN,1.5,1) #laterality distribution frontal -mean 1.5 and SD 1
+frontL<-rnorm(bigN,1.5,1) #laterality distribution frontal -mean .5 and SD 1
 postL<-rnorm(bigN,1.5,1) #laterality distribution posterior - independent in this case from frontL
 ##########################################################################
 
@@ -75,6 +76,10 @@ for (j in 1:2){
     thiscol<-thiscol+1 #increment to next column
     alltask[,thiscol]<-mywts[1,i]*frontL+mywts[2,i]*postL+mywts[3,i]*rnorm(bigN,0,1)
   }
+}
+#Set means for ABC to subtract 1
+if (meandiff==1){
+alltask[,c(1:3,7:9)]<-alltask[,c(1:3,7:9)]-1
 }
 
 #Transform the data so that those with LI less than +/- midrange have their score doubled (in same direction)
@@ -178,8 +183,8 @@ for (i in 1:66){
 }
 
 #write the summary data to file with filename
-filename1<-paste0('Factor',myfactor,'_ABCDEFx2_err',mywts[3,1],'_raw.csv')
-write.csv(alltask, filename1)
-filename2<-paste0('Factor',myfactor,'_ABCDEFx2_err',mywts[3,1],'_correls.csv')
-write.csv(rsummary, filename2)
+filename1<-paste0('Factor',myfactor,'_ABCDEFx2_meandiff_err',mywts[3,1],'_raw.csv')
+write.csv(alltask, filename1,row.names=FALSE)
+filename2<-paste0('Factor',myfactor,'_ABCDEFx2_meandiff_err',mywts[3,1],'_correls.csv')
+write.csv(rsummary, filename2,row.names=FALSE)
 }

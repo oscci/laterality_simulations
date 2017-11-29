@@ -77,9 +77,10 @@ for (j in 1:2){
     alltask[,thiscol]<-mywts[1,i]*frontL+mywts[2,i]*postL+mywts[3,i]*rnorm(bigN,0,1)
   }
 }
-#Set means for ABC to subtract 1
+#Set means for AB to subtract 1 and CD subtract .5 (EF no subtraction)
 if (meandiff==1){
-alltask[,c(1:3,7:9)]<-alltask[,c(1:3,7:9)]-1
+alltask[,c(1:2,7:8)]<-alltask[,c(1:2,7:8)]-1
+  alltask[,c(3:4,9:10)]<-alltask[,c(3:4,9:10)]-.5
 }
 
 #Transform the data so that those with LI less than +/- midrange have their score doubled (in same direction)

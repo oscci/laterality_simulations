@@ -12,6 +12,7 @@ require(Hmisc)
 
 # Background
 This file was used to create the original for Figure 1. 
+This will be written to file as SimModels.pdf.
 
 Updated 18 Jan 2019 to take on board reviewer commments and to correct the means for R hand panel (x and y means were transposed in submitted paper)
 
